@@ -1,20 +1,108 @@
+# product-service/src/main/resources/application.yml
+
 server:
   port: 8083
 
 spring:
   application:
     name: product-service
+
   threads:
     virtual:
       enabled: true
 
+  # ── MySQL (write model) ────────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://localhost:3307/product_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: product-service-hikari
+      maximum-pool-size: 15        # Higher than User Service: outbox polling + writes
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+
+  # ── JPA ────────────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+
+  # ── Flyway ─────────────────────────────────────────────────────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # ── Elasticsearch (read model) ─────────────────────────────────────
+  elasticsearch:
+    uris: http://localhost:9200
+    connection-timeout: 5s
+    socket-timeout: 30s
+
+  # ── Kafka ──────────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: all
+      retries: 3
+      properties:
+        max.block.ms: 5000
+        schema.registry.url: http://localhost:8081
+        auto.register.schemas: true
+        # Idempotent producer — guarantees exactly-once per partition
+        enable.idempotence: true
+    consumer:
+      group-id: product-service-es-sync
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:8081
+        specific.avro.reader: true
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 3
+
+  # ── Jackson ────────────────────────────────────────────────────────
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+# ── Outbox publisher ─────────────────────────────────────────────────
+outbox:
+  poll-interval-ms: 500
+  batch-size: 20
+  max-retries: 5
+
+# ── Eureka ───────────────────────────────────────────────────────────
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
   instance:
     prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
 
+# ── Actuator ─────────────────────────────────────────────────────────
 management:
   endpoints:
     web:
@@ -23,3 +111,20 @@ management:
   endpoint:
     health:
       show-details: always
+
+# ── Logging ──────────────────────────────────────────────────────────
+logging:
+  level:
+    com.ecommerce.product: DEBUG
+    org.hibernate.SQL: WARN
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
+    co.elastic.clients: WARN
+  pattern:
+    console: >-
+      %d{yyyy-MM-dd HH:mm:ss.SSS}
+      [%thread]
+      [CID:%X{correlationId:-N/A}]
+      %-5level
+      %logger{36}
+      - %msg%n
