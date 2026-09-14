@@ -1,0 +1,60 @@
+### Variables
+@baseUrl = http://localhost:9000/api/users
+@userId = 123e4567-e89b-12d3-a456-426614174000
+
+### 1. Create User (Full Payload)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "SecureP@ss123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phone": "+1234567890"
+}
+
+### 2. Get User by ID
+GET {{baseUrl}}/{{userId}}
+
+### 3. Create User (Minimal Payload)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "AnotherP@ss1",
+  "firstName": "Jane",
+  "lastName": "Doe"
+}
+
+### 4. Create User (Invalid Data for Validation Test)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "email": "bad-email",
+  "password": "short",
+  "firstName": "",
+  "lastName": ""
+}
+
+### 5. Get Paginated Users
+GET {{baseUrl}}?page=0&size=10&sortBy=email&sortDirection=ASC
+
+### 6. Update User Status
+PATCH {{baseUrl}}/{{userId}}/status
+Content-Type: application/json
+
+{
+  "status": "SUSPENDED"
+}
+
+### 7. Delete User
+DELETE {{baseUrl}}/{{userId}}
+
+### 8. Get User with Invalid UUID Format
+GET {{baseUrl}}/not-a-uuid
+
+### 9. Get User (Check Headers / Correlation ID)
+GET {{baseUrl}}/{{userId}}
