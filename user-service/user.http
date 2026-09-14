@@ -1,21 +1,24 @@
 ### Variables
 @baseUrl = http://localhost:8082/api/users
-@userId = 80b8a0af-e223-4226-838c-f553b47f9351
+@userId = 61c95bfe-67ac-4f08-9af6-5d290d7414ce
 
 ### 1. Create User (Full Payload)
 POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "email": "john.doe@example.com",
-  "password": "SecureP@ss123",
-  "firstName": "John",
-  "lastName": "Doe",
-  "phone": "+1234567890"
+  "email": "manivannank@yopmail.com",
+  "password": "Mani@123",
+  "firstName": "Mani",
+  "lastName": "K",
+  "phone": "+9677580582"
 }
 
 ### 2. Get User by ID
 GET {{baseUrl}}/{{userId}}
+
+### MySQL Hex String (32 Chars)
+GET http://localhost:8082/api/users/80B8A0AFE2234226838CF553B47F9351
 
 ### 3. Create User (Minimal Payload)
 POST {{baseUrl}}
