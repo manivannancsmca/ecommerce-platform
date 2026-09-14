@@ -77,3 +77,24 @@ ecommerce-platform/
                     │  Kafka UI :8090                │
                     │  Jaeger :16686                 │
                     └───────────────────────────────┘
+
+---
+
+## Infrastructure Port Map
+
+ | Container | Host Port | Purpose |
+| --- | --- | --- |
+| `mysql-user` | `3306` | User Service DB |
+| `mysql-product` | `3307` | Product Service DB |
+| `mysql-order` | `3308` | Order Service DB |
+| `mysql-payment` | `3309` | Payment Service DB |
+| `kafka-broker-1` | `9092` | Kafka (host access) |
+| `kafka-broker-2` | `9093` | Kafka (host access) |
+| `kafka-broker-3` | `9094` | Kafka (host access) |
+| `schema-registry` | `8081` | Avro schema management |
+| `kafka-ui` | `8090` | Kafka monitoring dashboard |
+| `redis` | `6379` | Rate limiter / cache |
+| `elasticsearch` | `9200` | Product read model |
+| `jaeger` | `16686` | Trace visualization |
+
+---
