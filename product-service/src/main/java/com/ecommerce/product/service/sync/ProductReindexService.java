@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Full reindex from MySQL to Elasticsearch using blue-green alias swapping.
