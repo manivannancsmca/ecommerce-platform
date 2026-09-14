@@ -1,13 +1,62 @@
+# user-service/src/main/resources/application.yml
+
 server:
   port: 8082
 
 spring:
   application:
     name: user-service
+
+  # Java 21 virtual threads — massive I/O concurrency improvement
   threads:
     virtual:
       enabled: true
 
+  # ── Database ───────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: user-service-hikari
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000        # 10 minutes
+      max-lifetime: 1800000       # 30 minutes
+      connection-timeout: 30000   # 30 seconds
+      auto-commit: false
+
+  # ── JPA / Hibernate ────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: none              # Flyway owns the schema
+    open-in-view: false           # Anti-pattern: disabled
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false   # Enable for performance tuning
+
+  # ── Flyway ─────────────────────────────────────────────────────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # ── Jackson ────────────────────────────────────────────────────────
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+# ── Eureka ───────────────────────────────────────────────────────────
 eureka:
   client:
     service-url:
@@ -17,6 +66,7 @@ eureka:
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 10
 
+# ── Actuator ─────────────────────────────────────────────────────────
 management:
   endpoints:
     web:
@@ -26,6 +76,17 @@ management:
     health:
       show-details: always
 
+# ── Logging ──────────────────────────────────────────────────────────
 logging:
   level:
     com.ecommerce.user: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: >-
+      %d{yyyy-MM-dd HH:mm:ss.SSS}
+      [%thread]
+      [CID:%X{correlationId:-N/A}]
+      %-5level
+      %logger{36}
+      - %msg%n
