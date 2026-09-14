@@ -10,6 +10,8 @@ import com.ecommerce.user.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/users")
 @Validated
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -48,6 +51,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public UserResponse getUserById(@PathVariable UUID id) {
+        log.info("userid ::::::::: {}", id);
         return userService.getUserById(id);
     }
 
