@@ -1,0 +1,42 @@
+### Variable Definitions
+@baseUrl = http://localhost:3309/api/products
+@contentType = application/json
+
+### 1. Get Product by ID (ES with MySQL Fallback)
+GET {{baseUrl}}/123e4567-e89b-12d3-a456-426614174000
+Accept: {{contentType}}
+
+###
+
+### 2. Search Products - Full Text Search & Filters
+GET {{baseUrl}}/search?query=phone&category=Electronics&brand=Apple&inStock=true&minPrice=100.00&maxPrice=1500.00&page=0&size=20&sortBy=price&sortDirection=ASC
+Accept: {{contentType}}
+
+###
+
+### 3. Search Products - Minimal Query
+GET {{baseUrl}}/search?query=laptop
+Accept: {{contentType}}
+
+###
+
+### 4. Search Products - Cursor Pagination (searchAfter)
+# Replace 'searchAfter' value with the 'nextSearchAfter' token returned from a previous query response
+GET {{baseUrl}}/search?query=phone&size=10&sortBy=price&sortDirection=ASC&searchAfter=eyJzb3J0VmFsdWVzIjpbOTk5Ljk5LCJpZC0xMjMiXX0=
+Accept: {{contentType}}
+
+###
+
+### 5. Create / Index Product (POST example)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Wireless Noise-Canceling Headphones",
+  "description": "High-fidelity audio with active noise cancellation.",
+  "category": "Electronics",
+  "brand": "AudioTech",
+  "price": 299.99,
+  "inStock": true,
+  "status": "ACTIVE"
+}
