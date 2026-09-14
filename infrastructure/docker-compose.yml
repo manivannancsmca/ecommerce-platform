@@ -1,102 +1,78 @@
-services:
-  # ──────────────────────────────────────────────────────────────
-  # MySQL — one instance per service (Database-per-Service pattern)
-  # ──────────────────────────────────────────────────────────────
-  mysql-user:
-    image: mysql:8.0
-    container_name: mysql-user
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: user_db
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-user-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    networks:
-      - ecommerce-network
+version: '3.8'
 
-  mysql-product:
-    image: mysql:8.0
-    container_name: mysql-product
+services:
+  elasticsearch:
+    image: elasticsearch:8.7.0
+    container_name: elasticsearch
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: product_db
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
-      - "3307:3306"
-    volumes:
-      - mysql-product-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - "9200:9200"
+      - "9300:9300"
     networks:
-      - ecommerce-network
+      - infrastructure
 
   mysql-order:
     image: mysql:8.0
     container_name: mysql-order
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: order_db
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
+      - MYSQL_ROOT_PASSWORD=yourpassword
+      - MYSQL_DATABASE=order_db
     ports:
-      - "3308:3306"
-    volumes:
-      - mysql-order-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - "3306:3306"
     networks:
-      - ecommerce-network
+      - infrastructure
+
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      - MYSQL_ROOT_PASSWORD=yourpassword
+      - MYSQL_DATABASE=user_db
+    ports:
+      - "3307:3306"
+    networks:
+      - infrastructure
 
   mysql-payment:
     image: mysql:8.0
     container_name: mysql-payment
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: payment_db
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
+      - MYSQL_ROOT_PASSWORD=yourpassword
+      - MYSQL_DATABASE=payment_db
+    ports:
+      - "3308:3306"
+    networks:
+      - infrastructure
+
+  mysql-product:
+    image: mysql:8.0
+    container_name: mysql-product
+    environment:
+      - MYSQL_ROOT_PASSWORD=yourpassword
+      - MYSQL_DATABASE=product_db
     ports:
       - "3309:3306"
-    volumes:
-      - mysql-payment-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
     networks:
-      - ecommerce-network
+      - infrastructure
 
-  # ──────────────────────────────────────────────────────────────
-  # Apache Kafka Cluster — 3 brokers in KRaft Mode (No ZooKeeper)
-  # ──────────────────────────────────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.35
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+    networks:
+      - infrastructure
+
+  redis:
+    image: redis:7.0
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - infrastructure
+
   kafka-broker-1:
     image: confluentinc/cp-kafka:7.6.0
     container_name: kafka-broker-1
@@ -104,210 +80,107 @@ services:
       - "9092:9092"
     environment:
       KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-1:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-1:29092'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_KEY_CONVERTER: 'org.apache.kafka.connect.storage.StringConverter'
-      KAFKA_VALUE_CONVERTER: 'org.apache.kafka.connect.storage.StringConverter'
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker-1:29093'
-      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:29092 > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 15s
-    networks:
-      - ecommerce-network
+      retries: 12
+      start_period: 120s
 
   kafka-broker-2:
     image: confluentinc/cp-kafka:7.6.0
     container_name: kafka-broker-2
-    depends_on:
-      kafka-broker-1:
-        condition: service_healthy
     ports:
-      - "9093:9093"
+      - "9093:9092"
     environment:
       KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-2:29092,PLAINTEXT_HOST://localhost:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-2:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_PROCESS_ROLES: 'broker'
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9093'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker-1:29093'
-      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:29093 > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 15s
-    networks:
-      - ecommerce-network
+      retries: 12
+      start_period: 120s
 
   kafka-broker-3:
     image: confluentinc/cp-kafka:7.6.0
     container_name: kafka-broker-3
-    depends_on:
-      kafka-broker-1:
-        condition: service_healthy
     ports:
-      - "9094:9094"
+      - "9094:9092"
     environment:
       KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-3:29092,PLAINTEXT_HOST://localhost:9094'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-3:29094'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_PROCESS_ROLES: 'broker'
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9094'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker-1:29093'
-      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:29094 > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 15s
-    networks:
-      - ecommerce-network
+      retries: 12
+      start_period: 120s
 
-  # ──────────────────────────────────────────────────────────────
-  # Confluent Schema Registry
-  # ──────────────────────────────────────────────────────────────
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.0
     container_name: schema-registry
-    depends_on:
-      kafka-broker-1:
-        condition: service_healthy
-      kafka-broker-2:
-        condition: service_healthy
-      kafka-broker-3:
-        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka-broker-1:29092,PLAINTEXT://kafka-broker-2:29092,PLAINTEXT://kafka-broker-3:29092"
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: "_schemas"
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: "3"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8081/subjects || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka-broker-1:29092,PLAINTEXT://kafka-broker-2:29093,PLAINTEXT://kafka-broker-3:29094'
+    depends_on:
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
     networks:
-      - ecommerce-network
+      - infrastructure
 
-  # ──────────────────────────────────────────────────────────────
-  # Kafka UI — monitoring and management
-  # ──────────────────────────────────────────────────────────────
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:29092,kafka-broker-2:29093,kafka-broker-3:29094
     depends_on:
-      kafka-broker-1:
-        condition: service_healthy
-      schema-registry:
-        condition: service_healthy
-    ports:
-      - "8090:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: ecommerce-cluster
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: >-
-        kafka-broker-1:29092,
-        kafka-broker-2:29092,
-        kafka-broker-3:29092
-      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
     networks:
-      - ecommerce-network
-
-  # ──────────────────────────────────────────────────────────────
-  # Redis — rate limiting, caching
-  # ──────────────────────────────────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ecommerce-network
-
-  # ──────────────────────────────────────────────────────────────
-  # Elasticsearch — product read model (Phase 3)
-  # ──────────────────────────────────────────────────────────────
-  elasticsearch:
-    image: elasticsearch:8.11.0
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - xpack.security.enrollment.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
-    networks:
-      - ecommerce-network
-
-  # ──────────────────────────────────────────────────────────────
-  # Jaeger — distributed tracing (Phase 7)
-  # ──────────────────────────────────────────────────────────────
-  jaeger:
-    image: jaegertracing/all-in-one:1.54
-    container_name: jaeger
-    ports:
-      - "16686:16686"   # Jaeger UI
-      - "4317:4317"     # OTLP gRPC
-      - "4318:4318"     # OTLP HTTP
-    environment:
-      COLLECTOR_OTLP_ENABLED: "true"
-    networks:
-      - ecommerce-network
-
-volumes:
-  mysql-user-data:
-  mysql-product-data:
-  mysql-order-data:
-  mysql-payment-data:
-  elasticsearch-data:
+      - infrastructure
 
 networks:
-  ecommerce-network:
+  infrastructure:
     driver: bridge
