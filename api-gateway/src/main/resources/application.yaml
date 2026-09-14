@@ -1,3 +1,87 @@
+server:
+  port: 9000
+
 spring:
   application:
     name: api-gateway
+
+  cloud:
+    gateway:
+      # ── Route definitions ──────────────────────────────────────
+      # Each route uses lb:// (load-balanced via Eureka) to reach the service.
+      # Paths are forwarded as-is — services own their /api/* prefixes.
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/products/**
+
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/orders/**
+
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/payments/**
+
+        - id: ai-service
+          uri: lb://AI-SERVICE
+          predicates:
+            - Path=/api/ai/**
+
+      # ── Global rate limiting (Redis-backed) ─────────────────────
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 50
+            redis-rate-limiter.burstCapacity: 100
+            redis-rate-limiter.requestedTokens: 1
+            key-resolver: "#{@ipAddressKeyResolver}"
+
+      # ── Discovery-based route auto-generation (disabled for control) ──
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+
+  # ── Redis connection for rate limiter ──────────────────────────
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+# ── Eureka client configuration ──────────────────────────────────
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    metadata-map:
+      startup-epoch: ${java.time.Instant:now}
+
+# ── Actuator ─────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    com.ecommerce.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
