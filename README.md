@@ -1,46 +1,43 @@
-Product Service — CQRS with MySQL Write Model + Elasticsearch Read Model
+# Product Service — CQRS with MySQL Write Model + Elasticsearch Read Model
 
-                    ┌───────────────────────────────────────────────┐
-                    │              Product Service                  │
-                    │                                               │
- ┌─────────┐       │  ┌─────────────────┐    ┌──────────────────┐  │
- │  Client  │──────►│  │ProductController│    │OutboxPublisher   │  │
- │  /Order  │  REST │  │  (commands +    │    │  @Scheduled      │  │
- │  Service │       │  │   queries)      │    │  poll outbox     │  │
- └─────────┘       │  └───┬─────────┬───┘    └───┬──────────────┘  │
-                    │      │         │            │                 │
-                    │  ┌───▼───┐ ┌───▼────┐  ┌───▼──────────────┐  │
-                    │  │Command│ │ Query  │  │KafkaEventPublisher│  │
-                    │  │Service│ │Service │  └───┬──────────────┘  │
-                    │  └───┬───┘ └───┬────┘      │                 │
-                    └──────┼─────────┼───────────┼─────────────────┘
-                           │         │           │
-                    ┌──────▼───┐ ┌───▼──────┐ ┌──▼──────────┐
-                    │  MySQL   │ │Elastic-  │ │   Kafka     │
-                    │product_db│ │search    │ │(3 brokers)  │
-                    │(write)   │ │(read)    │ │product-events│
-                    └──────┬───┘ └──▲───────┘ └──┬──────────┘
-                           │        │            │
-                           │  ┌─────┴────────────▼──┐
-                           │  │ProductEventConsumer  │
-                           │  │reads Kafka → writes  │
-                           │  │to Elasticsearch      │
-                           │  └──────────────────────┘
-                           │
-                    ┌──────▼───────┐
-                    │outbox_events │
-                    │(transactional│
-                    │ outbox)      │
-                    └──────────────┘
----
+## Architecture Overview
 
-Write path (Command): Client → Controller → CommandService → MySQL + outbox (single transaction) → OutboxPublisher polls → Kafka
-
-Read path (Query): Client → Controller → QueryService → Elasticsearch
-
-Sync path: Kafka → ProductEventConsumer → fetch from MySQL → write to Elasticsearch
-
----
+```plaintext
+                ┌───────────────────────────────────────────────┐
+                │              Product Service                  │
+                │                                               │
+┌─────────┐     │ ┌─────────────────┐ ┌──────────────────┐    │
+│  Client │────►│ │ProductController│ │OutboxPublisher │    │
+└─────────┘     │ │ (commands +     │ │  @Scheduled    │    │
+                │ │ queries)        │ └──────────────────┘    │
+                │ └─────────┬─────────┘                        │
+                │           │                                  │
+                │   ┌───────▼────────┐                        │
+                │   │ Command Service │                        │
+                │   └───────┬────────┘                        │
+                │           │                                 │
+                │   ┌───────▼────────┐                        │
+                │   │ Query Service  │                        │
+                │   └───────┬────────┘                        │
+                │           │                                 │
+                │   ┌───────▼────────┐                        │
+                │   │ KafkaEventPublisher                     │
+                │   └─────────┬───────┘                        │
+                │             │                                │
+                │ ┌───────────▼───────────┐                   │
+                │ │ Reads Kafka → Writes │                   │
+                │ │ to Elasticsearch     │                   │
+                │ └───────────────────────┘                   │
+                │                                             │
+                │            Write Path (Commands)            │
+                │   Client → Controller → CommandService →  │
+                │   MySQL + Outbox (single transaction)     │
+                │   → OutboxPublisher polls → Kafka          │
+                │                                             │
+                │            Read Path (Queries)              │
+                │   Client → Controller → QueryService →     │
+                │   Elasticsearch                           │
+                └─────────────────────────────────────────────┘
 
 product-service/
 ├── pom.xml
