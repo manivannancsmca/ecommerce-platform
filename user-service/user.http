@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:8082/api/users
-@userId = 80B8A0AFE2234226838CF553B47F9351
+@userId = 80b8a0af-e223-4226-838c-f553b47f9351
 
 ### 1. Create User (Full Payload)
 POST {{baseUrl}}

@@ -3,6 +3,10 @@ package com.ecommerce.user.model.entity;
 
 import com.ecommerce.user.model.enums.UserRole;
 import com.ecommerce.user.model.enums.UserStatus;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +23,7 @@ import java.util.UUID;
 public class User {
 
     @Id
+    @JdbcTypeCode(SqlTypes.BINARY) // Explicitly map UUID to BINARY(16)
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
