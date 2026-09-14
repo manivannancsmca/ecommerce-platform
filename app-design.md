@@ -1,3 +1,4 @@
+
 ecommerce-platform/
 ├── pom.xml                          ← Parent POM (dependency management)
 ├── infrastructure/
@@ -32,6 +33,7 @@ ecommerce-platform/
 ├── order-service/                   ← (same skeleton pattern)
 ├── payment-service/                 ← (same skeleton pattern)
 └── ai-service/                      ← (same skeleton pattern)
+
 
 ---
 
