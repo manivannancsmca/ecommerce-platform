@@ -1,5 +1,4 @@
 services:
-
   # ──────────────────────────────────────────────────────────────
   # MySQL — one instance per service (Database-per-Service pattern)
   # ──────────────────────────────────────────────────────────────
@@ -121,11 +120,11 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker-1:29093'
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list > /dev/null 2>&1"]
-      interval: 15s
-      timeout: 10s
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 15s
     networks:
       - ecommerce-network
 
@@ -139,7 +138,7 @@ services:
       - "9093:9093"
     environment:
       KAFKA_NODE_ID: 2
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-2:29092,PLAINTEXT_HOST://localhost:9093'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -148,15 +147,16 @@ services:
       KAFKA_PROCESS_ROLES: 'broker'
       KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9093'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker-1:29093'
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9093 --list > /dev/null 2>&1"]
-      interval: 15s
-      timeout: 10s
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 15s
     networks:
       - ecommerce-network
 
@@ -170,7 +170,7 @@ services:
       - "9094:9094"
     environment:
       KAFKA_NODE_ID: 3
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker-3:29092,PLAINTEXT_HOST://localhost:9094'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -179,15 +179,16 @@ services:
       KAFKA_PROCESS_ROLES: 'broker'
       KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9094'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker-1:29093'
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9094 --list > /dev/null 2>&1"]
-      interval: 15s
-      timeout: 10s
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 15s
     networks:
       - ecommerce-network
 
