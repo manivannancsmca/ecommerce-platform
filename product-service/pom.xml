@@ -32,6 +32,7 @@
     </properties>
 
     <dependencyManagement>
+        
         <dependencies>
             <!-- Spring Boot BOM -->
             <dependency>
@@ -59,7 +60,9 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            
         </dependencies>
+        
     </dependencyManagement>
 
     <repositories>
@@ -71,6 +74,7 @@
     </repositories>
 
     <dependencies>
+        
         <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
