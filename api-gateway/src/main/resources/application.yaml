@@ -51,14 +51,14 @@ spring:
           enabled: false
           lower-case-service-id: true
 
-  # ── Redis connection for rate limiter ──────────────────────────
+  # ── Redis connection for rate limiter ───────────────
   data:
     redis:
       host: localhost
       port: 6379
       timeout: 2000ms
 
-# ── Eureka client configuration ──────────────────────────────────
+# ── Eureka client configuration ─────────────────────
 eureka:
   client:
     service-url:
@@ -69,7 +69,7 @@ eureka:
     metadata-map:
       startup-epoch: ${java.time.Instant:now}
 
-# ── Actuator ─────────────────────────────────────────────────────
+# ── Actuator ───────────────────────────────────
 management:
   endpoints:
     web:
@@ -85,3 +85,4 @@ logging:
   level:
     com.ecommerce.gateway: DEBUG
     org.springframework.cloud.gateway: INFO
+    
