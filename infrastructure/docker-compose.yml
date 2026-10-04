@@ -1,4 +1,5 @@
 services:
+
   elasticsearch:
     image: elasticsearch:8.7.0
     container_name: elasticsearch
@@ -198,3 +199,4 @@ services:
 networks:
   infrastructure:
     driver: bridge
+    
