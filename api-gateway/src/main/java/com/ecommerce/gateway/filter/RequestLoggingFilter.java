@@ -51,4 +51,5 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
     public int getOrder() {
         return Ordered.LOWEST_PRECEDENCE;
     }
+    
 }
