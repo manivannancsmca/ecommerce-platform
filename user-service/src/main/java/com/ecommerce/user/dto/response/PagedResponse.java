@@ -23,4 +23,5 @@ public record PagedResponse<T>(
             pageMetadata.isLast()
         );
     }
+    
 }
