@@ -20,6 +20,7 @@ public record ErrorResponse(
     /**
      * Factory for errors without validation field details.
      */
+    
     public static ErrorResponse of(int status, String error, String message,
                                    String path, String correlationId) {
         return new ErrorResponse(Instant.now(), status, error, message,
@@ -27,4 +28,5 @@ public record ErrorResponse(
     }
 
     public record FieldErrorDetail(String field, String message, Object rejectedValue) {}
+    
 }
