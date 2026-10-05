@@ -62,6 +62,7 @@
             </dependency>
                  
         </dependencies>
+             
     </dependencyManagement>
 
     <build>
@@ -90,4 +91,5 @@
             <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
+         
 </project>
