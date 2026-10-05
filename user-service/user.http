@@ -1,4 +1,5 @@
 ### Variables
+
 @baseUrl = http://localhost:8082/api/users
 @userId = 61c95bfe-67ac-4f08-9af6-5d290d7414ce
 
