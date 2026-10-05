@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
  * Email changes require verification (future security phase).
  * Password changes have their own dedicated endpoint (future).
  */
+
 public record UpdateUserRequest(
 
     @NotBlank(message = "First name is required")
