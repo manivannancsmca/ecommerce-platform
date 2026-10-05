@@ -1,5 +1,5 @@
-# Product Service — CQRS with MySQL Write Model + Elasticsearch Read Model
 
+# Product Service — CQRS with MySQL Write Model + Elasticsearch Read Model
 ## Architecture Overview
 
 ```plaintext
@@ -113,3 +113,4 @@ product-service/
         │   └── CorrelationIdFilter.java
         └── aspect/
             └── LoggingAspect.java
+
