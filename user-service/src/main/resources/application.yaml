@@ -90,3 +90,4 @@ logging:
       %-5level
       %logger{36}
       - %msg%n
+      
