@@ -36,6 +36,7 @@ public class UserController {
      * POST /api/users
      * 201 Created → UserResponse
      */
+    
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse createUser(@Valid @RequestBody CreateUserRequest request) {
@@ -49,6 +50,7 @@ public class UserController {
      * 200 OK → UserResponse
      * 404 Not Found
      */
+    
     @GetMapping("/{id}")
     public UserResponse getUserById(@PathVariable UUID id) {
         log.info("userid ::::::::: {}", id);
@@ -61,6 +63,7 @@ public class UserController {
      * GET /api/users?page=0&size=20&sortBy=createdAt&sortDirection=DESC
      * 200 OK → PagedResponse<UserResponse>
      */
+    
     @GetMapping
     public PagedResponse<UserResponse> getAllUsers(
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -77,6 +80,7 @@ public class UserController {
      * 200 OK → UserResponse
      * 404 Not Found
      */
+    
     @PutMapping("/{id}")
     public UserResponse updateUser(@PathVariable UUID id,
                                    @Valid @RequestBody UpdateUserRequest request) {
@@ -91,6 +95,7 @@ public class UserController {
      * 404 Not Found
      * 422 Unprocessable Entity (same status, invalid transition)
      */
+    
     @PatchMapping("/{id}/status")
     public UserResponse updateUserStatus(@PathVariable UUID id,
                                          @Valid @RequestBody UpdateUserStatusRequest request) {
@@ -105,6 +110,7 @@ public class UserController {
      * 404 Not Found
      * 422 Unprocessable Entity (already inactive)
      */
+    
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable UUID id) {
