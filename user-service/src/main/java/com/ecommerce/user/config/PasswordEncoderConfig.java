@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * spring-security-crypto is a standalone library — no @EnableWebSecurity,
  * no SecurityFilterChain, no authentication/authorization is activated.
  */
+
 @Configuration
 public class PasswordEncoderConfig {
 
@@ -18,4 +19,5 @@ public class PasswordEncoderConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
 }
