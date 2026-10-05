@@ -28,6 +28,7 @@
     </properties>
 
     <dependencyManagement>
+        
         <dependencies>
             <!-- Spring Boot BOM -->
             <dependency>
